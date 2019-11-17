@@ -3,7 +3,6 @@
     { "port": 22,   "service": "ssh/sftp/scp"       },
     { "port": 23,   "service": "telnet"             },
     { "port": 25,   "service": "smtp"               },
-    { "port": 69,   "service": "sftp"               },
     { "port": 80,   "service": "http"               },
     { "port": 443,  "service": "https"              },
     { "port": 3306, "service": "mysql"              },
