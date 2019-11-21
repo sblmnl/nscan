@@ -78,21 +78,22 @@ class ServiceScan(object):
 
     def compile(self):
         print("compiling outputs...")
-        f_output = open("scans/%s/output.json" % self.id, "a+")
-        f_output.write("{ \"id\":\"%s\", \"timestamp\":\"%s\", \"results\":[" % (
-            self.id,
-            datetime.datetime.utcnow()))
-        items = os.listdir("scans/%s/temp" % self.id)
-        for i in range(0, len(items)):
-            if os.path.isfile("scans/%s/temp/%s" % (self.id, items[i])):
-                f_input = open("scans/%s/temp/%s" % (self.id, items[i]), "r")
-                f_output.write(f_input.read())
-                if i != len(items) - 1:
-                    f_output.write(",")
+        base_path = "scans/%s" % self.id
+        items = os.listdir("%s/temp" % base_path)
+        for item in items:
+            if os.path.isfile("%s/temp/%s" % (base_path, item)):
+                f_input = open("%s/temp/%s" % (base_path, item), "r")
+                data = json.loads(f_input.read())
                 f_input.close()
-                os.remove("scans/%s/temp/%s" % (self.id, items[i]))
-        os.rmdir("scans/%s/temp/" % self.id)
-        f_output.write("] }\r\n")
+                self.output["results"][data["host"]].append({
+                    "service": str(data["service"]["service"]),
+                    "port": int(data["service"]["port"]),
+                    "status": bool(data["status"])
+                })
+                os.remove("%s/temp/%s" % (base_path, item))
+        os.rmdir("%s/temp" % base_path)
+        f_output = open("scans/%s/output.json" % self.id, "a+")
+        f_output.write(json.dumps(self.output))
         f_output.close()
         self.end = time.time()
         self.elapsed = self.end - self.begin
@@ -169,6 +170,13 @@ class ServiceScan(object):
         self.status = "active"
         self.pool = []
         self.maximum_pool_size = (psutil.cpu_count() ** 2) * 8
+        self.output = {
+            "id": "%s" % self.id,
+            "timestamp": "%s" % datetime.datetime.utcnow(),
+            "results": {}
+        }
+        for target in self.targets:
+            self.output["results"][str(target)] = []
 
 def main(args):
     scan = None
