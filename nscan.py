@@ -129,11 +129,13 @@ class ServiceScan(object):
             if self.status == "stop": break
             for service in self.services:
                 if self.status == "stop": break
-                worker = { "id": None, "thread": None, "args": {}, "output": None, "status": None }
-                worker["id"] = str(id)
-                worker["args"] = { "host": target, "service": service }
-                worker["thread"] = Thread(target=self._start_worker, args=(worker["id"],))
-                worker["status"] = "inactive"
+                worker = {
+                    "id": str(id),
+                    "thread": Thread(target=self._start_worker, args=(str(id),)),
+                    "args": { "host": target, "service": service },
+                    "output": None,
+                    "status": "inactive"
+                }
                 if len(self.pool) < self.maximum_pool_size and id < total_workers - 1:
                     self.pool.append(worker)
                 else:
